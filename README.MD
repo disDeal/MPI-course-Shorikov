@@ -1,5 +1,4 @@
 # Collection of practices 
-#
 
 ## Usage
 
