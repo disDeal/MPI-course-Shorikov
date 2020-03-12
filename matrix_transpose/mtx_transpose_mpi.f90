@@ -10,6 +10,7 @@
       INTEGER, ALLOCATABLE :: arr(:,:), arr2(:,:), slice(:,:)
       INTEGER, ALLOCATABLE :: chunk_main(:,:), chunk_sub(:,:)
       INTEGER, ALLOCATABLE :: chunk_l(:,:), chunk_r(:,:)
+      INTEGER, ALLOCATABLE :: chunk_l_t(:,:), chunk_r_t(:,:)
       INTEGER status(MPI_STATUS_SIZE)
 
       CALL MPI_INIT(ierr)
@@ -26,11 +27,11 @@
               read(10,*)(arr(i,j),j=1,nrow)
           enddo
 
-          write(6,*) "ncol:", ncol, ", nrow:", nrow
-          write(6,*) "Untouched matrix:"
-          do i = 1,ncol
-              write(6,100)(arr(i,j),j=1,nrow)
-          enddo
+!          write(6,*) "ncol:", ncol, ", nrow:", nrow
+!          write(6,*) "Untouched matrix:"
+!          do i = 1,ncol
+!              write(6,100)(arr(i,j),j=1,nrow)
+!          enddo
 
        endif
 
@@ -51,27 +52,25 @@
            CALL MPI_SEND(slice, (ncol/2)*(nrow_main), MPI_INTEGER, 2, 02, MPI_COMM_WORLD,ierr)
            DEALLOCATE (slice)
 
-           slice = arr(ncol_main+1:ncol_main+ncol/2,1:nrow/2)
+           slice = arr(ncol_main+1:ncol_main+ncol/2,1:nrow_main)
            CALL MPI_SEND(slice, (ncol_main)*(nrow/2), MPI_INTEGER, 3, 03, MPI_COMM_WORLD,ierr)
            DEALLOCATE (slice)
 
            chunk_main = arr(1:ncol_main,1:nrow_main)
 
-           MPI_BARRIER(MPI_COMM_WORLD, ierr)
            do i = 1,ncol_main
-               do j = 1,nrow_main
-                   tmp = arr(i, j)
-                   arr(i, j) = arr(j, i)
-                   arr(j, i) = tmp
+               do j = i+1,nrow_main
+                   tmp = chunk_main(i, j)
+                   chunk_main(i, j) = chunk_main(j, i)
+                   chunk_main(j, i) = tmp
                enddo
            enddo
-           MPI_BARRIER(MPI_COMM_WORLD, ierr)
 
 
-           write(6,*) "Main matrix:"
-           do i = 1,ncol_main
-               write(6,100)(arr(i,j),j=1,nrow_main)
-           enddo
+!           write(6,*) "Main matrix:"
+!           do i = 1,ncol_main
+!               write(6,100)(chunk_main(i,j),j=1,nrow_main)
+!           enddo
 
 
       elseif (rank .eq. 1) then
@@ -87,17 +86,17 @@
            CALL MPI_RECV(chunk_sub, ncol_sub*nrow_sub, MPI_INTEGER, 0, 01, MPI_COMM_WORLD, status,ierr)
 
            do i = 1,ncol_sub
-               do j = 1,nrow_sub
+               do j = i+1,nrow_sub
                    tmp = chunk_sub(i, j)
                    chunk_sub(i, j) = chunk_sub(j, i)
                    chunk_sub(j, i) = tmp
                enddo
            enddo
 
-           write(6,*) "Sub matrix:"
-           do i = 1,ncol_sub
-               write(6,100)(chunk_sub(i,j),j=1,nrow_sub)
-           enddo
+!           write(6,*) "Sub matrix:"
+!           do i = 1,ncol_sub
+!               write(6,100)(chunk_sub(i,j),j=1,nrow_sub)
+!           enddo
 
            DEALLOCATE (chunk_sub)
 
@@ -109,13 +108,21 @@
            ncol_r = ncol - ncol/ 2
            nrow_r = nrow / 2
 
-           ALLOCATE (chunk_r(ncol_r, ncol_r))
+           ALLOCATE (chunk_r(ncol_r, nrow_r))
            CALL MPI_RECV(chunk_r, ncol_r*nrow_r, MPI_INTEGER, 0, 02, MPI_COMM_WORLD, status,ierr)
 
-!           write(6,*) "Right matrix:"
-!           do i = 1,ncol_r
-!               write(6,100)(chunk_r(i,j),j=1,nrow_r)
-!           enddo
+           ALLOCATE (chunk_r_t(nrow_r, ncol_r))
+
+           do i = 1,ncol_r
+               do j =1,nrow_r
+                   chunk_r_t(j, i) = chunk_r(i, j)
+               enddo
+           enddo
+
+           write(6,*) "Right matrix:"
+           do i = 1,nrow_r
+               write(6,100)(chunk_r_t(i,j),j=1,ncol_r)
+           enddo
 
            DEALLOCATE (chunk_r)
 
@@ -127,14 +134,21 @@
            ncol_l = ncol / 2
            nrow_l = nrow - nrow / 2
 
-           ALLOCATE (chunk_l(ncol_l, ncol_l))
+           ALLOCATE (chunk_l(ncol_l, nrow_l))
            CALL MPI_RECV(chunk_l, ncol_l*nrow_l, MPI_INTEGER, 0, 03, MPI_COMM_WORLD, status,ierr)
 
-!           write(6,*) "Left matrix:"
-!           do i = 1,ncol_l
-!               write(6,100)(chunk_l(i,j),j=1,nrow_l)
-!           enddo
+           ALLOCATE (chunk_l_t(nrow_l, ncol_l))
 
+           do i = 1,ncol_l
+               do j =1,nrow_l
+                   chunk_l_t(j, i) = chunk_l(i, j)
+               enddo
+           enddo
+
+           write(6,*) "Left matrix:"
+           do i = 1,nrow_l
+               write(6,100)(chunk_l_t(i,j),j=1,ncol_l)
+           enddo
 
            DEALLOCATE (chunk_l)
       endif
