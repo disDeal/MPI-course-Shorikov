@@ -119,10 +119,10 @@
                enddo
            enddo
 
-           write(6,*) "Right matrix:"
-           do i = 1,nrow_r
-               write(6,100)(chunk_r_t(i,j),j=1,ncol_r)
-           enddo
+!           write(6,*) "Right matrix:"
+!           do i = 1,nrow_r
+!               write(6,100)(chunk_r_t(i,j),j=1,ncol_r)
+!           enddo
 
            DEALLOCATE (chunk_r)
 
@@ -145,10 +145,10 @@
                enddo
            enddo
 
-           write(6,*) "Left matrix:"
-           do i = 1,nrow_l
-               write(6,100)(chunk_l_t(i,j),j=1,ncol_l)
-           enddo
+!           write(6,*) "Left matrix:"
+!           do i = 1,nrow_l
+!               write(6,100)(chunk_l_t(i,j),j=1,ncol_l)
+!           enddo
 
            DEALLOCATE (chunk_l)
       endif
@@ -161,4 +161,4 @@
       endif
 
 100   format(100i4)
-      end 
+      end
