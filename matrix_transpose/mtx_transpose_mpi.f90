@@ -18,7 +18,7 @@
       CALL MPI_COMM_RANK(MPI_COMM_WORLD, rank, ierr)
 
       if (rank .eq. 0) then
-          open(10, file='M', form='formatted', status='unknown')
+          open(10, file='A', form='formatted', status='unknown')
           read(10, *)ncol
           read(10, *)nrow
 
