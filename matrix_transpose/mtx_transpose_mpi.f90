@@ -56,13 +56,11 @@
            CALL MPI_SEND(slice, (ncol_main)*(nrow/2), MPI_INTEGER, 3, 03, MPI_COMM_WORLD,ierr)
            DEALLOCATE (slice)
 
-           chunk_main = arr(1:ncol_main,1:nrow_main)
-
            do i = 1,ncol_main
                do j = i+1,nrow_main
-                   tmp = chunk_main(i, j)
-                   chunk_main(i, j) = chunk_main(j, i)
-                   chunk_main(j, i) = tmp
+                   tmp = arr(i, j)
+                   arr(i, j) = arr(j, i)
+                   arr(j, i) = tmp
                enddo
            enddo
 
@@ -150,9 +148,32 @@
 !               write(6,100)(chunk_l_t(i,j),j=1,ncol_l)
 !           enddo
 
+           CALL MPI_SEND(nrow_l, 1, MPI_INTEGER, 0, 30, MPI_COMM_WORLD, ierr)
+           CALL MPI_SEND(ncol_l, 1, MPI_INTEGER, 0, 30, MPI_COMM_WORLD, ierr)
+           CALL MPI_SEND(chunk_l_t, ncol_l*nrow_l, MPI_INTEGER, 0, 30, MPI_COMM_WORLD, ierr)
+
            DEALLOCATE (chunk_l)
       endif
 
+      if (rank .eq. 0) then
+
+          CALL MPI_RECV(ncol, 1, MPI_INTEGER, 3, 30, MPI_COMM_WORLD, status, ierr)
+          CALL MPI_RECV(nrow, 1, MPI_INTEGER, 3, 30, MPI_COMM_WORLD, status, ierr)
+          ALLOCATE (slice(ncol, nrow))
+          CALL MPI_RECV(slice, ncol*nrow, MPI_INTEGER, 3, 30, MPI_COMM_WORLD, status, ierr)
+          do i = 1,ncol
+              do j = 1,nrow
+                  arr(i, nrow_main + j) = slice(i,j)
+              enddo
+          enddo
+          DEALLOCATE (slice)
+
+          write(6,*)"Result"
+          do i = 1,ncol_main + ncol_main / 2  * 2
+              write(6,100)(arr(i,j),j = 1,nrow_main + nrow_main / 2  * 2)
+          enddo
+
+      endif
 
       CALL MPI_FINALIZE(ierr)
 
