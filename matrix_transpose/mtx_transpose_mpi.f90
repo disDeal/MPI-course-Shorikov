@@ -7,7 +7,7 @@
       INTEGER :: ncol_l, nrow_l, ncol_r, nrow_r
       INTEGER :: nproc, rank
       INTEGER :: tmp
-      INTEGER, ALLOCATABLE :: arr(:,:), arr2(:,:), slice(:,:)
+      INTEGER, ALLOCATABLE :: arr(:,:), res(:,:), slice(:,:)
       INTEGER, ALLOCATABLE :: chunk_main(:,:), chunk_sub(:,:)
       INTEGER, ALLOCATABLE :: chunk_l(:,:), chunk_r(:,:)
       INTEGER, ALLOCATABLE :: chunk_l_t(:,:), chunk_r_t(:,:)
@@ -122,6 +122,10 @@
 !               write(6,100)(chunk_r_t(i,j),j=1,ncol_r)
 !           enddo
 
+           CALL MPI_SEND(nrow_r, 1, MPI_INTEGER, 0, 20, MPI_COMM_WORLD, ierr)
+           CALL MPI_SEND(ncol_r, 1, MPI_INTEGER, 0, 20, MPI_COMM_WORLD, ierr)
+           CALL MPI_SEND(chunk_r_t, ncol_r*nrow_r, MPI_INTEGER, 0, 20, MPI_COMM_WORLD, ierr)
+
            DEALLOCATE (chunk_r)
 
       elseif (rank .eq. 3) then
@@ -167,6 +171,18 @@
               enddo
           enddo
           DEALLOCATE (slice)
+
+          CALL MPI_RECV(ncol, 1, MPI_INTEGER, 2, 20, MPI_COMM_WORLD, status, ierr)
+          CALL MPI_RECV(nrow, 1, MPI_INTEGER, 2, 20, MPI_COMM_WORLD, status, ierr)
+          ALLOCATE (slice(ncol, nrow))
+          CALL MPI_RECV(slice, ncol*nrow, MPI_INTEGER, 2, 20, MPI_COMM_WORLD, status, ierr)
+          do i = 1,ncol
+              do j = 1,nrow
+                  arr(ncol_main + i, j) = slice(i,j)
+              enddo
+          enddo
+          DEALLOCATE (slice)
+
 
           write(6,*)"Result"
           do i = 1,ncol_main + ncol_main / 2  * 2
