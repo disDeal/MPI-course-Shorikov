@@ -96,6 +96,10 @@
 !               write(6,100)(chunk_sub(i,j),j=1,nrow_sub)
 !           enddo
 
+           CALL MPI_SEND(ncol_sub, 1, MPI_INTEGER, 0, 10, MPI_COMM_WORLD, ierr)
+           CALL MPI_SEND(nrow_sub, 1, MPI_INTEGER, 0, 10, MPI_COMM_WORLD, ierr)
+           CALL MPI_SEND(chunk_sub, ncol_sub*nrow_sub, MPI_INTEGER, 0, 10, MPI_COMM_WORLD, ierr)
+
            DEALLOCATE (chunk_sub)
 
        elseif (rank .eq. 2) then
@@ -183,6 +187,16 @@
           enddo
           DEALLOCATE (slice)
 
+          CALL MPI_RECV(ncol, 1, MPI_INTEGER, 1, 10, MPI_COMM_WORLD, status, ierr)
+          CALL MPI_RECV(nrow, 1, MPI_INTEGER, 1, 10, MPI_COMM_WORLD, status, ierr)
+          ALLOCATE (slice(ncol, nrow))
+          CALL MPI_RECV(slice, ncol*nrow, MPI_INTEGER, 1, 10, MPI_COMM_WORLD, status, ierr)
+          do i = 1,ncol
+              do j = 1,nrow
+                  arr(ncol_main + i,nrow_main + j) = slice(i,j)
+              enddo
+          enddo
+          DEALLOCATE (slice)
 
           write(6,*)"Result"
           do i = 1,ncol_main + ncol_main / 2  * 2
