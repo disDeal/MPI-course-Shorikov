@@ -27,11 +27,11 @@
               read(10,*)(arr(i,j),j=1,nrow)
           enddo
 
-!          write(6,*) "ncol:", ncol, ", nrow:", nrow
-!          write(6,*) "Untouched matrix:"
-!          do i = 1,ncol
-!              write(6,100)(arr(i,j),j=1,nrow)
-!          enddo
+          write(6,*) "ncol:", ncol, ", nrow:", nrow
+          write(6,*) "Untouched matrix:"
+          do i = 1,ncol
+              write(6,100)(arr(i,j),j=1,nrow)
+          enddo
 
        endif
 
