@@ -19,7 +19,7 @@
 
       if(myrank == 0) then
          write(*,*) "MPI version with tastks = ", nproc
-         write(*,*) "Number of intervals     = ", intervals
+         write(*,*) "Intervals length = ", intervals
       endif
 
       start = (intervals) * myrank
